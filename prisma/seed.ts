@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import { PrismaClient, StoreStatus, UserRoleType } from '../src/generated/prisma'
+import { hashPassword } from '../src/utils/password'
 
 const databaseUrl = process.env.DATABASE_URL
 if (!databaseUrl) {
@@ -228,13 +229,15 @@ async function main() {
     // =============================================================================
     console.log('Creating super admin user...')
 
+    const defaultPasswordHash = await hashPassword('password123')
+
     const superAdmin = await prisma.user.upsert({
         where: { email: 'admin@platform.com' },
         update: {},
         create: {
             email: 'admin@platform.com',
             name: 'Platform Admin',
-            passwordHash: '$2a$10$example.hash.for.development',
+            passwordHash: defaultPasswordHash,
             emailVerified: true,
         },
     })
@@ -276,14 +279,13 @@ async function main() {
         },
     })
 
-    // Create store owner
     const storeOwner = await prisma.user.upsert({
         where: { email: 'owner@demostore.com' },
         update: {},
         create: {
             email: 'owner@demostore.com',
             name: 'Store Owner',
-            passwordHash: '$2a$10$example.hash.for.development',
+            passwordHash: defaultPasswordHash,
             emailVerified: true,
         },
     })
